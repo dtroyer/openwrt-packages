@@ -1,0 +1,33 @@
+--- a/ovsdb/log.c
++++ b/ovsdb/log.c
+@@ -29,7 +29,7 @@
+ #include "lockfile.h"
+ #include "ovsdb.h"
+ #include "ovsdb-error.h"
+-#include "sha1.h"
++#include "lib/sha1.h"
+ #include "socket-util.h"
+ #include "transaction.h"
+ #include "util.h"
+--- a/tests/test-sha1.c
++++ b/tests/test-sha1.c
+@@ -15,7 +15,7 @@
+  */
+ 
+ #include <config.h>
+-#include "sha1.h"
++#include "lib/sha1.h"
+ #include <inttypes.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+--- a/vswitchd/bridge.c
++++ b/vswitchd/bridge.c
+@@ -52,7 +52,7 @@
+ #include "port-array.h"
+ #include "proc-net-compat.h"
+ #include "process.h"
+-#include "sha1.h"
++#include "lib/sha1.h"
+ #include "shash.h"
+ #include "socket-util.h"
+ #include "stream-ssl.h"

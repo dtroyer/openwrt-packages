@@ -1,0 +1,12 @@
+dt's OpenWRT Packages
+---------------------
+
+euca2ools - Eucalyptus EC2-compatible user tools
+
+openvswitch - Virtual switch/bridge
+
+python-boto - Python EC2 interface, required by Euca2tools
+
+python-m2crypto - Python interface to OpenSSL, required by Euca2tools
+
+swig - Required to build M2Crypto

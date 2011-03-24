@@ -1,0 +1,12 @@
+--- a/lib/sflow_api.h
++++ b/lib/sflow_api.h
+@@ -14,7 +14,9 @@
+ #include <unistd.h>
+ #include <errno.h>
+ #include <string.h>
++#define __USE_BSD
+ #include <sys/types.h>
++#undef __USE_BSD
+ #include <arpa/inet.h> /* for htonl */
+ 
+ #ifdef SFLOW_DO_SOCKET
