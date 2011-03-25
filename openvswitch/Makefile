@@ -28,7 +28,7 @@ endef
 CONFIGURE_ARGS += \
 	--prefix=/usr \
 	--sysconfdir=/etc \
-	--localstatedir=/var \
+	--localstatedir=/tmp \
 	--enable-ssl
 
 TARGET_CFLAGS += -std=c99
@@ -45,8 +45,8 @@ define Package/openvswitch/install
 		PREFIX="/usr" \
 		DESTDIR=$(PKG_INSTALL_DIR) \
 		install
-	$(INSTALL_DIR) $(1)/usr/bin 
-	$(CP) $(PKG_INSTALL_DIR)/usr/bin/* $(1)/usr/bin
+	$(INSTALL_DIR) $(1)/usr
+	$(CP) $(PKG_INSTALL_DIR)/usr/* $(1)/usr
 endef
 
 $(eval $(call BuildPackage,openvswitch))
