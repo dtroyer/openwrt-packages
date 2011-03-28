@@ -70,8 +70,3 @@ start() {
 	fi
 	return 0
 }
-
-stop() {
-	msg "stop"
-}
-

@@ -2,7 +2,7 @@
 # vi: ts=4 noexpandtab
 
 XN=cloud-final
-. /etc/rc.d/init.d/cloud-functions
+. /etc/init.d/cloud-functions
 
 START=92
 
@@ -20,8 +20,3 @@ start() {
   local-ipv4 : ${iip}
 EOF
 }
-
-stop() {
-	msg "stop"
-}
-

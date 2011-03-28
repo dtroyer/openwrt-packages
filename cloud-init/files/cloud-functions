@@ -4,7 +4,7 @@
 BURL="http://169.254.169.254/2009-04-04"
 MDURL="${BURL}/meta-data"
 UDURL="${BURL}/user-data"
-STATE_D=/var/lib/cloud
+STATE_D=/tmp/cloud
 CLOUD_CONFIG=${STATE_D}/config.txt
 MD_DEBUG_COUNT=30
 
@@ -51,7 +51,7 @@ mddebug() {
 	msg "running debug (${MD_DEBUG_COUNT} tries reached)"
 	echo "############ debug start ##############"
 	echo "### /etc/rc.d/init.d/sshd start"
-	/etc/rc.d/init.d/sshd start
+	/etc/init.d/sshd start
 	local gw=""
 	gw=$(route -n | awk '$1 == "0.0.0.0" && $2 != "0.0.0.0" { print $2 }')
 	echo "### ifconfig -a"

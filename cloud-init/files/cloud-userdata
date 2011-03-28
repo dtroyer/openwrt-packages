@@ -32,8 +32,3 @@ start() {
 	chmod 755 "${udf}"
 	exec "${udf}"
 }
-
-stop() {
-	msg "stop"
-}
-

@@ -12,6 +12,7 @@ define Package/cloud-init
   SECTION:=base
   CATEGORY:=Base system
   TITLE:=Cloud Init scripts
+  DEPENDS:=+wget
 endef
 
 define Package/cloud-init/description
