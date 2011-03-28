@@ -1,8 +1,10 @@
-#!/bin/sh
+#!/bin/sh /etc/rc.common
 # vi: ts=4 noexpandtab
 
 XN=cloud-setup
-. /etc/rc.d/init.d/cloud-functions
+. /etc/init.d/cloud-functions
+
+START=47
 
 start() {
 	local i=0 max=30 iid="" uptime="" toks="" n="" cmdline=""
@@ -13,7 +15,7 @@ start() {
 	for n in ${cmdline}; do
 		case "${n}" in
 			cloud_tries=*) max=${n#cloud_tries=}; break;;
-            ds=nocloud*)
+			ds=nocloud*)
 				msg "kernel option nocloud specified. not using md"; return 0;;
 		esac
 	done
@@ -69,7 +71,7 @@ start() {
 	return 0
 }
 
-case "$1" in
-	start) start;;
-	*) msg "unknown argument ${1}";;
-esac
+stop() {
+	msg "stop"
+}
+

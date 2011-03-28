@@ -1,8 +1,10 @@
-#!/bin/sh
+#!/bin/sh /etc/rc.common
 # vi: ts=4 noexpandtab
 
 XN=cloud-userdata
-. /etc/rc.d/init.d/cloud-functions
+. /etc/init.d/cloud-functions
+
+START=91
 
 start() {
 	local iid="" shebang="" a="" udf="${STATE_D}/userdata"
@@ -31,7 +33,7 @@ start() {
 	exec "${udf}"
 }
 
-case "$1" in
-	start) start;;
-	*) msg "unknown argument ${1}";;
-esac
+stop() {
+	msg "stop"
+}
+

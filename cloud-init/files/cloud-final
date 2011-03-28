@@ -1,8 +1,10 @@
-#!/bin/sh
+#!/bin/sh /etc/rc.common
 # vi: ts=4 noexpandtab
 
 XN=cloud-final
 . /etc/rc.d/init.d/cloud-functions
+
+START=92
 
 start() {
 	local iid="" iip="" eip="" uptime=""
@@ -19,7 +21,7 @@ start() {
 EOF
 }
 
-case "$1" in
-	start) start;;
-	*) msg "unknown argument ${1}";;
-esac
+stop() {
+	msg "stop"
+}
+

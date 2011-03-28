@@ -30,7 +30,8 @@ define Build/Compile
 endef
 
 define Package/cloud-init/install
-	$(CP) ./files/* $(1)/
+	$(INSTALL_DIR) $(1)/etc/init.d
+	$(INSTALL_BIN) ./files/cloud* $(1)/etc/init.d/
 endef
 
 $(eval $(call BuildPackage,cloud-init))
