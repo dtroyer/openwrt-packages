@@ -1,8 +1,8 @@
 #!/bin/sh /etc/rc.common
 # vi: ts=4 noexpandtab
 
-XN=cloud-final
-. /etc/init.d/cloud-functions
+XN=rc.cloud-final
+. /etc/init.d/rc.cloud-functions
 
 START=92
 

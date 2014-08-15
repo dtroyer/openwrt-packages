@@ -1,22 +1,23 @@
-# cloud-init
+# rc.cloud
 
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=cloud-init
+PKG_NAME:=rc.cloud
 PKG_VERSION:=0.1
 PKG_RELEASE:=1
 
 include $(INCLUDE_DIR)/package.mk
 
-define Package/cloud-init
+define Package/rc.cloud
   SECTION:=base
   CATEGORY:=Base system
-  TITLE:=Cloud Init scripts
+  TITLE:=RC commands for cloud instance
   DEPENDS:=+wget
 endef
 
-define Package/cloud-init/description
-Cloud init scripts
+define Package/rc.cloud/description
+RC commands for cloud instance
+Minimal shell implementation of smoser's cloud-init
 endef
 
 define Build/Prepare
@@ -30,10 +31,10 @@ define Build/Compile
 	$(call Build/Compile/Default)
 endef
 
-define Package/cloud-init/install
+define Package/rc.cloud/install
 	$(INSTALL_DIR) $(1)/etc/init.d
-	$(INSTALL_BIN) ./files/cloud* $(1)/etc/init.d/
+	$(INSTALL_BIN) ./files/rc.cloud* $(1)/etc/init.d/
 endef
 
-$(eval $(call BuildPackage,cloud-init))
+$(eval $(call BuildPackage,rc.cloud))
 

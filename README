@@ -1,4 +1,4 @@
 dt's OpenWRT Packages
 ---------------------
 
-cloud-init - Minumal shell script implementation of smoser's cloud-init
+rc.cloud - Minumal shell script implementation of smoser's cloud-init

@@ -1,8 +1,8 @@
 #!/bin/sh /etc/rc.common
 # vi: ts=4 noexpandtab
 
-XN=cloud-setup
-. /etc/init.d/cloud-functions
+XN=rc.cloud-setup
+. /etc/init.d/rc.cloud-functions
 
 START=47
 
@@ -62,6 +62,7 @@ start() {
 	keys=${keys# }
 	# keys is list of [0-9]=name
 	if [ -n "${keys}" ]; then
+        # name maintained for log compatability
 		msg "cloudinit: getting ssh keys: [${keys}]"
 		for toks in ${keys}; do
 			n=${toks%%=*}
