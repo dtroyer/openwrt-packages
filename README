@@ -1,4 +1,6 @@
 dt's OpenWRT Packages
 ---------------------
 
+parted - GNU parted (not in current package set, lost in translation to github?)
+
 rc.cloud - Minumal shell script implementation of smoser's cloud-init
