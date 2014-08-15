@@ -22,6 +22,7 @@ define Package/parted
   CATEGORY:=Utilities
   TITLE:=parted Partition editor
   URL:=http://www.gnu.org/software/parted/index.shtml
+  DEPENDS:=@!LINUX_2_4 +libblkid +libuuid
 endef
 
 define Package/parted/description
