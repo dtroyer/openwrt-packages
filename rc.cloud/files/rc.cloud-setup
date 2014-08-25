@@ -66,7 +66,10 @@ start() {
         msg "cloudinit: getting ssh keys: [${keys}]"
         for toks in ${keys}; do
             n=${toks%%=*}
-            mdget public-keys/${n}/openssh-key - >> /root/.ssh/authorized_keys
+            authkey=$(mdget public-keys/${n}/openssh-key -)
+            if ! grep -q $authkey /root/.ssh/authorized_keys; then
+                echo $authkey >> /root/.ssh/authorized_keys
+            fi
         done
     fi
     return 0
