@@ -50,6 +50,11 @@ start() {
         { msg "previously ran for ${iid}"; return 0; }
     mark ${iid}
 
+    host_name=$(mdget local-hostname -)
+    uci set system.@system[0].hostname=${host_name%%\.*}
+    uci commit
+    hostname ${host_name%%\.*}
+
     mkdir -p /root/.ssh
     chmod 700 /root/.ssh
 
