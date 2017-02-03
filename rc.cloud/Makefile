@@ -12,7 +12,7 @@ define Package/rc.cloud
   SECTION:=base
   CATEGORY:=Base system
   TITLE:=RC commands for cloud instance
-  DEPENDS:=+wget
+  DEPENDS:=+wget +jq
 endef
 
 define Package/rc.cloud/description
