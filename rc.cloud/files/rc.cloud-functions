@@ -21,7 +21,7 @@ MD_DEBUG_COUNT=30
 
 TMPF=/tmp/${0##*/}.tmp
 trap "rm -f ${TMPF}" EXIT
-msg() { echo "${XN}: $1"; }
+msg() { echo "${XN}: $1" | tee -a /dev/console; }
 mdget() {
     if [ -d "${EC2_DATA}" ]; then
 	_RET=$(jq -r '."'${1}'"' ${EC2_DATA}/meta_data.json 2>/dev/null)

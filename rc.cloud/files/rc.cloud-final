@@ -9,7 +9,7 @@ START=92
 start() {
     local iid="" iip="" eip="" uptime="" lanif="" _hostname=""
     read uptime cputime < /proc/uptime
-    echo "===== ${XN}: system completely up in ${uptime} seconds ===="
+    msg "===== ${XN}: system completely up in ${uptime} seconds ===="
 
     is_nocloud && return 0
 
@@ -20,12 +20,12 @@ start() {
     mdget public-ipv4 && eip=${_RET}
     mdget local-ipv4 && iip=${_RET}
 
-    cat <<EOF
+    cat <<EOF | tee -a /dev/console
   instance-id: ${iid}
   hostname: ${_hostname}
   public-ipv4: ${eip}
   local-ipv4 : ${iip}
 EOF
     lanif=$(uci get network.lan.ifname)
-    ip addr show dev ${lanif} | awk -v lanif=${lanif} '/inet/ { print "  " lanif " IP: " $2 }'
+    ip addr show dev ${lanif} | awk -v lanif=${lanif} '/inet/ { print "  " lanif " IP: " $2 }' | tee -a /dev/console
 }
