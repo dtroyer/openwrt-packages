@@ -7,7 +7,7 @@ XN=rc.cloud-setup
 START=47
 
 start() {
-    local i=0 max=30 iid="" uptime="" toks="" n="" cmdline=""
+    local i=0 max=30 iid="" uptime="" toks="" n="" cmdline="" keydir=""
     is_nocloud &&
         { msg "nocloud specified, not using metadata"; return 0; }
     read cmdline < /proc/cmdline
@@ -69,11 +69,13 @@ start() {
     if [ -n "${keys}" ]; then
         # name maintained for log compatability
         msg "cloudinit: getting ssh keys: [${keys}]"
+        keydir=/etc/dropbear
+        [ -d ${keydir} ] || keydir=/root/.ssh
         for toks in ${keys}; do
             n=${toks%%=*}
             authkey=$(mdget public-keys/${n}/openssh-key -)
-            if ! grep -q $authkey /etc/dropbear/authorized_keys; then
-                echo $authkey >> /etc/dropbear/authorized_keys
+            if ! grep -q ${authkey} ${keydir}/authorized_keys; then
+                echo ${authkey} >>${keydir}/authorized_keys
             fi
         done
     fi
