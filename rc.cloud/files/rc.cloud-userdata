@@ -9,26 +9,34 @@ START=91
 start() {
     local iid="" shebang="" a="" udf="${STATE_D}/userdata"
     is_nocloud && return 0
-    mdget instance-id ||
+    get_vars
+    [ -z ${_iid} ] &&
         { msg "failed to read instance id"; return 1; }
-
-    iid=${_RET}
-    [ -n "${iid}" -a "${iid#i-}" != "${iid}" ] ||
-        { echo "failed to read instance-id, found ${iid}"; return 1; }
+    iid=${_iid}
 
     marked ${iid} &&
         { msg "user data previously read"; return 0; }
 
     mark ${iid}
 
-    wget -q -O - "${UDURL}" > "${udf}" ||
-        { msg "failed to read user data url: ${UDURL}"; return 1; }
+    if [ -d "${EC2_DATA}" ]; then
+        cp "${EC2_DATA}/user-data" "${udf}" 2>/dev/null &&
+            { msg "read user-data: ${EC2_DATA}/user-data"; return 1; }
+    elif [ -d "${OS_DATA}" ]; then
+        cp "${OS_DATA}/user-data" "${udf}"  2>/dev/null &&
+            { msg "read user-data: ${OS_DATA}/user-data"; return 1; }
+    else
+        wget -q -O - "${UDURL}" > "${udf}" ||
+            { msg "failed to read user data url: ${UDURL}"; return 1; }
+    fi
 
-    shebang="#!"
-    read a < "${udf}"
-    [ "${a#${shebang}}" = "${a}" ] &&
-        { msg "user data not a script"; return 0; }
+    if [ -r "${udf}" ]; then
+        shebang="#!"
+        read a < "${udf}"
+        [ "${a#${shebang}}" = "${a}" ] &&
+            { msg "user data not a script"; return 0; }
 
-    chmod 755 "${udf}"
-    exec "${udf}"
+        chmod 755 "${udf}"
+        exec "${udf}"
+    fi
 }

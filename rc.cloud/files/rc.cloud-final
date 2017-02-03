@@ -7,16 +7,25 @@ XN=rc.cloud-final
 START=92
 
 start() {
-    local iid="" iip="" eip="" uptime=""
+    local iid="" iip="" eip="" uptime="" lanif="" _hostname=""
     read uptime cputime < /proc/uptime
     echo "===== ${XN}: system completely up in ${uptime} seconds ===="
+
     is_nocloud && return 0
-    mdget instance-id && iid=${_RET}
+
+    get_vars
+    [ -z ${_iid} ] &&
+        { msg "failed to read instance id"; return 1; }
+    iid=${_iid}
     mdget public-ipv4 && eip=${_RET}
     mdget local-ipv4 && iip=${_RET}
+
     cat <<EOF
   instance-id: ${iid}
+  hostname: ${_hostname}
   public-ipv4: ${eip}
   local-ipv4 : ${iip}
 EOF
+    lanif=$(uci get network.lan.ifname)
+    ip addr show dev ${lanif} | awk -v lanif=${lanif} '/inet/ { print "  " lanif " IP: " $2 }'
 }

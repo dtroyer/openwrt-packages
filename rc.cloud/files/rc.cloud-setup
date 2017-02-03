@@ -7,7 +7,7 @@ XN=rc.cloud-setup
 START=47
 
 start() {
-    local i=0 max=30 iid="" uptime="" toks="" n="" cmdline="" keydir=""
+    local i=0 max=30 iid="" uptime="" toks="" n="" cmdline="" keydir="" md_cd=""
     is_nocloud &&
         { msg "nocloud specified, not using metadata"; return 0; }
     read cmdline < /proc/cmdline
@@ -21,17 +21,32 @@ start() {
     done
     [ ${max} -lt 0 ] && max=$((60*60*24*3)) ; # 3 days, is plenty
 
-    msg "checking ${MDURL}/instance-id"
+    # look for config-drive first
+    md_cd=$(blkid -t LABEL="config-2" -odevice)
+    if [[ -n ${md_cd} ]]; then
+        msg "found config drive on ${md_cd}"
+        mkdir -p ${CD_MNT}
+        mount ${md_cd} ${CD_MNT}
+    fi
+
+    msg "getting instance-id"
     i=0
     while [ $i -lt ${max} ] && i=$(($i+1)); do
         read uptime cputime < /proc/uptime
         iid=""
         if mdget instance-id; then
+            # Get EC2 ID
             iid=${_RET}
             [ "${iid#i-}" != "${iid}" ] && break
             msg "failed $i/${max}: up ${uptime}. iid had ${iid}"
         else
-            msg "failed $i/${max}: up ${uptime}. request failed"
+            if mdget uuid; then
+                # Get OpenStack uuid
+                iid=${_RET}
+                break
+            else
+                msg "failed $i/${max}: up ${uptime}. request failed"
+            fi
         fi
         sleep 1
         if [ $i -eq "${MD_DEBUG_COUNT}" ]; then
@@ -49,35 +64,61 @@ start() {
     marked ${iid} &&
         { msg "previously ran for ${iid}"; return 0; }
     mark ${iid}
+    save_var -n _iid=${iid}
 
     host_name=$(mdget local-hostname -)
+    [ -z $host_name ] && host_name=$(mdget hostname -)
     uci set system.@system[0].hostname=${host_name%%\.*}
     uci commit
     echo "${host_name%%\.*}" >/proc/sys/kernel/hostname
+    save_var _hostname=${host_name%%\.*}
 
     mkdir -p /root/.ssh
     chmod 700 /root/.ssh
 
-    mdget public-keys/ "${TMPF}"
-    echo >> "${TMPF}" # while loop will fail if no trailing newline
-    keys=""
-    while read line; do
-        keys="${keys} ${line}"
-    done < "${TMPF}"
-    keys=${keys# }
-    # keys is list of [0-9]=name
-    if [ -n "${keys}" ]; then
-        # name maintained for log compatability
-        msg "cloudinit: getting ssh keys: [${keys}]"
-        keydir=/etc/dropbear
-        [ -d ${keydir} ] || keydir=/root/.ssh
-        for toks in ${keys}; do
-            n=${toks%%=*}
-            authkey=$(mdget public-keys/${n}/openssh-key -)
-            if ! grep -q ${authkey} ${keydir}/authorized_keys; then
+    keydir=/etc/dropbear
+    [ -d ${keydir} ] || keydir=/root/.ssh
+    if [[ -n ${md_cd} ]]; then
+        # OpenStack keys come in multiple forms
+        i=0
+        keys=$(jq -r '.keys|.[]|.name' ${OS_DATA}/meta_data.json 2>/dev/null)
+        if [ "${keys}" != "" ]; then
+            for k in ${keys}; do
+                if [ "$(jq -r '.keys|.['${i}']|.type' ${OS_DATA}/meta_data.json 2>/dev/null)" == "ssh" ]; then
+                    authkey=$(jq -r '.keys|.['${i}']|.data' ${OS_DATA}/meta_data.json 2>/dev/null)
+                    if ! grep -q "${authkey}" ${keydir}/authorized_keys; then
+                        echo ${authkey} >>${keydir}/authorized_keys
+                    fi
+                fi
+                i=$(($i+1))
+            done
+        else
+            keyname=$(jq -r '.public_keys|keys[0]' ${OS_DATA}/meta_data.json 2>/dev/null)
+            authkey=$(jq -r '.public_keys|.[]' ${OS_DATA}/meta_data.json 2>/dev/null)
+            if ! grep -q "${authkey}" ${keydir}/authorized_keys; then
                 echo ${authkey} >>${keydir}/authorized_keys
             fi
-        done
+        fi
+    else
+        mdget public-keys/ "${TMPF}"
+        echo >> "${TMPF}" # while loop will fail if no trailing newline
+        keys=""
+        while read line; do
+            keys="${keys} ${line}"
+        done < "${TMPF}"
+        keys=${keys# }
+        # keys is list of [0-9]=name
+        if [ -n "${keys}" ]; then
+            # name maintained for log compatability
+            msg "cloudinit: getting ssh keys: [${keys}]"
+            for toks in ${keys}; do
+                n=${toks%%=*}
+                authkey=$(mdget public-keys/${n}/openssh-key -)
+                if ! grep -q ${authkey} ${keydir}/authorized_keys; then
+                    echo ${authkey} >>${keydir}/authorized_keys
+                fi
+            done
+        fi
     fi
     return 0
 }

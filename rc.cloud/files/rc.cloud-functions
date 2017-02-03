@@ -1,11 +1,15 @@
 #!/bin/sh
 # vi: ts=4 expandtab
 
+CD_MNT="/tmp/config-2"
+EC2_DATA="${CD_MNT}/ec2/2009-04-04"
+OS_DATA="${CD_MNT}/openstack/2013-10-17"
 BURL="http://169.254.169.254/2009-04-04"
 MDURL="${BURL}/meta-data"
 UDURL="${BURL}/user-data"
 STATE_D=/tmp/cloud
 CLOUD_CONFIG=${STATE_D}/config.txt
+MD_CACHE=${STATE_D}/metadata.cache
 MD_DEBUG_COUNT=30
 
 [ -d "${STATE_D}" ] || mkdir -p "${STATE_D}"
@@ -19,12 +23,34 @@ TMPF=/tmp/${0##*/}.tmp
 trap "rm -f ${TMPF}" EXIT
 msg() { echo "${XN}: $1"; }
 mdget() {
-    if [ "${2}" = "-" ]; then
-        wget -q -O - "${MDURL}/${1}"
+    if [ -d "${EC2_DATA}" ]; then
+	_RET=$(jq -r '."'${1}'"' ${EC2_DATA}/meta_data.json 2>/dev/null)
+        if [ "${_RET}" == "null" ]; then
+            _RET=""
+            false
+        else
+            if [ "${2}" = "-" ]; then
+                echo ${_RET}
+            fi
+        fi
+    elif [ -d "${OS_DATA}" ]; then
+	_RET=$(jq -r '."'${1}'"' ${OS_DATA}/meta_data.json 2>/dev/null)
+        if [ "${_RET}" == "null" ]; then
+            _RET=""
+            false
+        else
+            if [ "${2}" = "-" ]; then
+                echo ${_RET}
+            fi
+        fi
     else
-        local out=${2:-${TMPF}}
-        wget -q -O - "${MDURL}/${1}" > "${out}" &&
-            { read _RET < "${TMPF}" ; :; }
+        if [ "${2}" = "-" ]; then
+            wget -q -O - "${MDURL}/${1}"
+        else
+            local out=${2:-${TMPF}}
+            wget -q -O - "${MDURL}/${1}" > "${out}" &&
+                { read _RET < "${TMPF}" ; :; }
+        fi
     fi
 }
 marked() {
@@ -36,6 +62,27 @@ mark() {
     { [ -d "${STATE_D}" ] || mkdir "${STATE_D}"; } ||
         msg "failed to make ${STATE_D}"
     date > "${STATE_D}/${name}.${iid}"
+}
+
+# Cache metadata for multiple scripts
+# save_var [-n] expr
+# -n resets cache file
+save_var() {
+    { [ -d "${STATE_D}" ] || mkdir "${STATE_D}"; } ||
+        msg "failed to make ${STATE_D}"
+    if [ "${1}" == "-n" ]; then
+        echo "# $(date)" >"${MD_CACHE}"
+        shift
+    fi
+    echo "${1}" >>"${MD_CACHE}"
+}
+
+# Source cached metadata
+# get_vars
+get_vars() {
+    if [ -f "${MD_CACHE}" ]; then
+        . "${MD_CACHE}"
+    fi
 }
 
 mddebug() {

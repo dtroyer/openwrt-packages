@@ -3,8 +3,8 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=rc.cloud
-PKG_VERSION:=0.1
-PKG_RELEASE:=3
+PKG_VERSION:=0.2
+PKG_RELEASE:=1
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -16,8 +16,8 @@ define Package/rc.cloud
 endef
 
 define Package/rc.cloud/description
-RC commands for cloud instance
-Minimal shell implementation of smoser's cloud-init
+  RC commands for cloud instance
+  Minimal shell implementation of smoser's cloud-init
 endef
 
 define Build/Prepare
