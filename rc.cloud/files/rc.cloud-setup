@@ -72,8 +72,8 @@ start() {
         for toks in ${keys}; do
             n=${toks%%=*}
             authkey=$(mdget public-keys/${n}/openssh-key -)
-            if ! grep -q $authkey /root/.ssh/authorized_keys; then
-                echo $authkey >> /root/.ssh/authorized_keys
+            if ! grep -q $authkey /etc/dropbear/authorized_keys; then
+                echo $authkey >> /etc/dropbear/authorized_keys
             fi
         done
     fi
