@@ -53,7 +53,7 @@ start() {
     host_name=$(mdget local-hostname -)
     uci set system.@system[0].hostname=${host_name%%\.*}
     uci commit
-    hostname ${host_name%%\.*}
+    echo "${host_name%%\.*}" >/proc/sys/kernel/hostname
 
     mkdir -p /root/.ssh
     chmod 700 /root/.ssh
