@@ -1,6 +1,8 @@
 dt's OpenWRT Packages
 ---------------------
 
+jq - lightweight and flexible command-line (shell) JSON processor
+
 parted - GNU parted (not in current package set, lost in translation to github?)
 
 rc.cloud - Minumal shell script implementation of smoser's cloud-init
