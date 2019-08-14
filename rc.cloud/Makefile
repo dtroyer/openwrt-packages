@@ -3,7 +3,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=rc.cloud
-PKG_VERSION:=0.2
+PKG_VERSION:=0.3
 PKG_RELEASE:=1
 
 include $(INCLUDE_DIR)/package.mk
@@ -12,7 +12,7 @@ define Package/rc.cloud
   SECTION:=base
   CATEGORY:=Base system
   TITLE:=RC commands for cloud instance
-  DEPENDS:=+wget +jq
+  DEPENDS:=+blkid +wget +jq
 endef
 
 define Package/rc.cloud/description
@@ -32,8 +32,7 @@ define Build/Compile
 endef
 
 define Package/rc.cloud/install
-	$(INSTALL_DIR) $(1)/etc/init.d
-	$(INSTALL_BIN) ./files/rc.cloud* $(1)/etc/init.d/
+	$(CP) ./files/* $(1)/
 endef
 
 $(eval $(call BuildPackage,rc.cloud))

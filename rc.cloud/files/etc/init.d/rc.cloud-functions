@@ -3,7 +3,7 @@
 
 CD_MNT="/tmp/config-2"
 EC2_DATA="${CD_MNT}/ec2/2009-04-04"
-OS_DATA="${CD_MNT}/openstack/2013-10-17"
+OS_DATA="${CD_MNT}/openstack/2017-02-22"
 BURL="http://169.254.169.254/2009-04-04"
 MDURL="${BURL}/meta-data"
 UDURL="${BURL}/user-data"
@@ -12,9 +12,9 @@ CLOUD_CONFIG=${STATE_D}/config.txt
 MD_CACHE=${STATE_D}/metadata.cache
 MD_DEBUG_COUNT=30
 
-[ -d "${STATE_D}" ] || mkdir -p "${STATE_D}"
+[ -n "${IPKG_INSTROOT}" -o -d "${STATE_D}" ] || mkdir -p "${STATE_D}"
 
-[ -f "${CLOUD_CONFIG}" ] && . "${CLOUD_CONFIG}"
+[ -z "${IPKG_INSTROOT}" -a -f "${CLOUD_CONFIG}" ] && . "${CLOUD_CONFIG}"
 # CLOUD_CONFIG may set
 # MD_TRIES
 # MD_DEBUG_COUNT
@@ -23,8 +23,8 @@ TMPF=/tmp/${0##*/}.tmp
 trap "rm -f ${TMPF}" EXIT
 msg() { echo "${XN}: $1" | tee -a /dev/console; }
 mdget() {
-    if [ -d "${EC2_DATA}" ]; then
-	_RET=$(jq -r '."'${1}'"' ${EC2_DATA}/meta_data.json 2>/dev/null)
+    if [ -d "${OS_DATA}" ]; then
+	_RET=$(jq -r '."'${1}'"' ${OS_DATA}/meta_data.json 2>/dev/null)
         if [ "${_RET}" == "null" ]; then
             _RET=""
             false
@@ -33,8 +33,9 @@ mdget() {
                 echo ${_RET}
             fi
         fi
-    elif [ -d "${OS_DATA}" ]; then
-	_RET=$(jq -r '."'${1}'"' ${OS_DATA}/meta_data.json 2>/dev/null)
+
+    elif [ -d "${EC2_DATA}" ]; then
+	_RET=$(jq -r '."'${1}'"' ${EC2_DATA}/meta-data.json 2>/dev/null)
         if [ "${_RET}" == "null" ]; then
             _RET=""
             false
@@ -72,6 +73,7 @@ save_var() {
         msg "failed to make ${STATE_D}"
     if [ "${1}" == "-n" ]; then
         echo "# $(date)" >"${MD_CACHE}"
+        chmod 600 "${MD_CACHE}"
         shift
     fi
     echo "${1}" >>"${MD_CACHE}"

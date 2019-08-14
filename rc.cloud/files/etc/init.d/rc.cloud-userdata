@@ -2,7 +2,7 @@
 # vi: ts=4 expandtab
 
 XN=rc.cloud-userdata
-. /etc/init.d/rc.cloud-functions
+. ${IPKG_INSTROOT}/etc/init.d/rc.cloud-functions
 
 START=91
 
@@ -19,12 +19,12 @@ start() {
 
     mark ${iid}
 
-    if [ -d "${EC2_DATA}" ]; then
+    if [ -d "${OS_DATA}" ]; then
+        cp "${OS_DATA}/user_data" "${udf}"  2>/dev/null &&
+            { msg "read user_data: ${OS_DATA}/user_data"; return 1; }
+    elif [ -d "${EC2_DATA}" ]; then
         cp "${EC2_DATA}/user-data" "${udf}" 2>/dev/null &&
             { msg "read user-data: ${EC2_DATA}/user-data"; return 1; }
-    elif [ -d "${OS_DATA}" ]; then
-        cp "${OS_DATA}/user-data" "${udf}"  2>/dev/null &&
-            { msg "read user-data: ${OS_DATA}/user-data"; return 1; }
     else
         wget -q -O - "${UDURL}" > "${udf}" ||
             { msg "failed to read user data url: ${UDURL}"; return 1; }

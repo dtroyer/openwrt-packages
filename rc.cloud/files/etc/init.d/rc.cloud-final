@@ -2,7 +2,7 @@
 # vi: ts=4 expandtab
 
 XN=rc.cloud-final
-. /etc/init.d/rc.cloud-functions
+. ${IPKG_INSTROOT}/etc/init.d/rc.cloud-functions
 
 START=92
 

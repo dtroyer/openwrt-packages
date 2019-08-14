@@ -2,7 +2,7 @@
 # vi: ts=4 expandtab
 
 XN=rc.cloud-setup
-. /etc/init.d/rc.cloud-functions
+. ${IPKG_INSTROOT}/etc/init.d/rc.cloud-functions
 
 START=47
 
@@ -72,6 +72,9 @@ start() {
     uci commit
     echo "${host_name%%\.*}" >/proc/sys/kernel/hostname
     save_var _hostname=${host_name%%\.*}
+
+    admin_pass=$(mdget admin_pass -)
+    save_var _admin_pass=${admin_pass}
 
     mkdir -p /root/.ssh
     chmod 700 /root/.ssh
