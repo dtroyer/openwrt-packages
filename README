@@ -1,4 +1,6 @@
 dt's OpenWRT Packages
 ---------------------
 
+incus-agent - Sets up the Incus agent binary at boot
+
 rc.cloud - Minumal shell script implementation of smoser's cloud-init

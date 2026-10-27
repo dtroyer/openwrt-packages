@@ -1,0 +1,73 @@
+#!/bin/sh
+# Stage the Incus agent from the instance config share into /run/incus_agent.
+#
+# OpenWrt implementation of the incus-agent-setup script Incus uses on systemd guests:
+# * udev is not present so locate the config CD-ROM by probing /dev/sr* rather than
+#   /dev/disk/by-label/incus-agent
+# * create the /dev/virtio-ports links udev would create
+# * no SELinux restorecon step
+
+PREFIX="/run/incus_agent"
+MNT="${PREFIX}.mnt"
+CDROM_LABEL="incus-agent"
+
+mount_9p() {
+    modprobe 9pnet_virtio >/dev/null 2>&1 || true
+    mount -t 9p config "${MNT}" -o access=0,trans=virtio,size=1048576 >/dev/null 2>&1
+}
+
+mount_cdrom() {
+    for dev in /dev/sr*; do
+        [ -b "${dev}" ] || continue
+        if block info "${dev}" 2>/dev/null | grep -q "LABEL=\"${CDROM_LABEL}\""; then
+            mount -t iso9660 -o ro "${dev}" "${MNT}" >/dev/null 2>&1 && return 0
+        fi
+    done
+    return 1
+}
+
+fail() {
+    # A cdrom-based setup ejects the drive, on a service restart the
+    # the agent staged at boot is still usable
+    if [ -x "${PREFIX}/incus-agent" ]; then
+        echo "${1}, reusing existing agent"
+        exit 0
+    fi
+
+    umount -l "${PREFIX}" >/dev/null 2>&1 || true
+    rmdir "${PREFIX}" >/dev/null 2>&1 || true
+    echo "${1}, failing"
+    exit 1
+}
+
+mkdir -p "${MNT}"
+mount_9p || mount_cdrom || { rmdir "${MNT}" >/dev/null 2>&1; fail "Couldn't mount 9p or cdrom"; }
+
+umount -l "${PREFIX}" >/dev/null 2>&1 || true
+mkdir -p "${PREFIX}"
+mount -t tmpfs tmpfs "${PREFIX}" -o mode=0700,size=50M
+
+cp -Ra "${MNT}/"* "${PREFIX}"
+
+umount "${MNT}"
+rmdir "${MNT}"
+
+for dev in /dev/sr*; do
+    [ -b "${dev}" ] && eject "${dev}" >/dev/null 2>&1
+done
+
+chown -R root:root "${PREFIX}"
+
+if [ ! -e "${PREFIX}/incus-agent" ] && [ -e "${PREFIX}/lxd-agent" ]; then
+    ln -s lxd-agent "${PREFIX}/incus-agent"
+fi
+
+# Create /dev/virtio-ports/org.linuxcontainers.incus (normally created by udev)
+# so the agent can signal readiness to the host.  
+mkdir -p /dev/virtio-ports
+for port in /sys/class/virtio-ports/*; do
+    [ -r "${port}/name" ] || continue
+    ln -sf "../${port##*/}" "/dev/virtio-ports/$(cat "${port}/name")"
+done
+
+exit 0
