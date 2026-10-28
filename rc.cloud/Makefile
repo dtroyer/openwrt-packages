@@ -3,8 +3,10 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=rc.cloud
-PKG_VERSION:=0.3
-PKG_RELEASE:=1
+PKG_VERSION:=0.4
+PKG_RELEASE:=2
+
+PKG_LICENSE:=MIT
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -12,7 +14,7 @@ define Package/rc.cloud
   SECTION:=base
   CATEGORY:=Base system
   TITLE:=RC commands for cloud instance
-  DEPENDS:=+blkid +wget +jq
+  DEPENDS:=+blkid +curl +jq
 endef
 
 define Package/rc.cloud/description

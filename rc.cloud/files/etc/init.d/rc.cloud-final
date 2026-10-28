@@ -26,6 +26,8 @@ start() {
   public-ipv4: ${eip}
   local-ipv4 : ${iip}
 EOF
-    lanif=$(uci get network.lan.ifname)
+    # network.lan.ifname was replaced by network.lan.device in OpenWrt 21.02
+    lanif=$(uci -q get network.lan.device || uci -q get network.lan.ifname)
+    [ -n "${lanif}" ] || return 0
     ip addr show dev ${lanif} | awk -v lanif=${lanif} '/inet/ { print "  " lanif " IP: " $2 }' | tee -a /dev/console
 }
