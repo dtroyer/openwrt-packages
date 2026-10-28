@@ -20,13 +20,18 @@ start() {
     mark ${iid}
 
     if [ -d "${OS_DATA}" ]; then
-        cp "${OS_DATA}/user_data" "${udf}"  2>/dev/null &&
-            { msg "read user_data: ${OS_DATA}/user_data"; return 1; }
+        cp "${OS_DATA}/user_data" "${udf}"  2>/dev/null ||
+            { msg "no user data in ${OS_DATA}/user_data"; return 0; }
+        msg "read user_data: ${OS_DATA}/user_data"
     elif [ -d "${EC2_DATA}" ]; then
-        cp "${EC2_DATA}/user-data" "${udf}" 2>/dev/null &&
-            { msg "read user-data: ${EC2_DATA}/user-data"; return 1; }
+        cp "${EC2_DATA}/user-data" "${udf}" 2>/dev/null ||
+            { msg "no user data in ${EC2_DATA}/user-data"; return 0; }
+        msg "read user-data: ${EC2_DATA}/user-data"
+    elif is_incus; then
+        mdget user-data "${udf}" ||
+            { msg "no user data in cloud-init.user-data"; return 0; }
     else
-        wget -q -O - "${UDURL}" > "${udf}" ||
+        curl -sf "${UDURL}" > "${udf}" ||
             { msg "failed to read user data url: ${UDURL}"; return 1; }
     fi
 

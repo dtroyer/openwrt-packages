@@ -10,6 +10,8 @@ start() {
     local i=0 max=30 iid="" uptime="" toks="" n="" cmdline="" keydir="" md_cd=""
     is_nocloud &&
         { msg "nocloud specified, not using metadata"; return 0; }
+    # Only waiting for incus-agent to start, not a network metadata server
+    is_incus && max=10
     read cmdline < /proc/cmdline
     [ -f "${STATE_D}/cloud_tries" ] && read max < "${STATE_D}/cloud_tries"
     for n in ${cmdline}; do
@@ -23,7 +25,7 @@ start() {
 
     # look for config-drive first
     md_cd=$(blkid -t LABEL="config-2" -odevice)
-    if [[ -n ${md_cd} ]]; then
+    if [[ -n "${md_cd}" ]]; then
         msg "found config drive on ${md_cd}"
         mkdir -p ${CD_MNT}
         mount ${md_cd} ${CD_MNT}
@@ -35,9 +37,10 @@ start() {
         read uptime cputime < /proc/uptime
         iid=""
         if mdget instance-id; then
-            # Get EC2 ID
+            # Get EC2 ID or Incus UUID
             iid=${_RET}
             [ "${iid#i-}" != "${iid}" ] && break
+            is_incus && break
             msg "failed $i/${max}: up ${uptime}. iid had ${iid}"
         else
             if mdget uuid; then
@@ -81,7 +84,7 @@ start() {
 
     keydir=/etc/dropbear
     [ -d ${keydir} ] || keydir=/root/.ssh
-    if [[ -n ${md_cd} ]]; then
+    if [[ -n "${md_cd}" ]]; then
         # OpenStack keys come in multiple forms
         i=0
         keys=$(jq -r '.keys|.[]|.name' ${OS_DATA}/meta_data.json 2>/dev/null)
@@ -101,6 +104,18 @@ start() {
             if ! grep -q "${authkey}" ${keydir}/authorized_keys; then
                 echo ${authkey} >>${keydir}/authorized_keys
             fi
+        fi
+    elif is_incus; then
+        # Incus has no key metadata, keys are one per line in the
+        # user.ssh-authorized-keys instance config key
+        if mdget ssh-authorized-keys "${TMPF}"; then
+            msg "getting ssh keys from user.ssh-authorized-keys"
+            while read authkey; do
+                [ -n "${authkey}" ] || continue
+                if ! grep -qF "${authkey}" ${keydir}/authorized_keys 2>/dev/null; then
+                    echo "${authkey}" >>${keydir}/authorized_keys
+                fi
+            done < "${TMPF}"
         fi
     else
         mdget public-keys/ "${TMPF}"
